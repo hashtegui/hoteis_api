@@ -5,36 +5,12 @@ from flask_restful import Resource, reqparse, request
 
 from models.hotel import HotelModel
 
+from .filtros import *
+
 # path /hoteis?cidade=Rio de Janeiro&estrelas_min=4&diaria_max=400
 
 
 class Hoteis(Resource):
-
-    def normalize_path_params(cidade=None,
-                              estrelas_min=0,
-                              estrelas_max=5,
-                              diaria_min=0,
-                              diaria_max=10000,
-                              limit=50,
-                              offset=0, **dados):
-        if cidade:
-            return {
-                'estrelas_min': estrelas_min,
-                'estrelas_max': estrelas_max,
-                'diaria_min': diaria_min,
-                'diaria_max': diaria_max,
-                'cidade': cidade,
-                'limit': limit,
-                'offset': offset
-            }
-        return {
-            'estrelas_min': estrelas_min,
-            'estrelas_max': estrelas_max,
-            'diaria_min': diaria_min,
-            'diaria_max': diaria_max,
-            'limit': limit,
-            'offset': offset
-        }
 
     def get(self):
         connection = sqlite3.connect('banco.db')
@@ -42,21 +18,14 @@ class Hoteis(Resource):
         hoteis = [hotel.json() for hotel in HotelModel.query.all()]
         print('connection')
         dados_validos = request.args
-        parametros = Hoteis.normalize_path_params(**dados_validos)
+        parametros = normalize_path_params(**dados_validos)
 
         if parametros.get('cidade'):
-            consulta = f"""SELECT * FROM hoteis
-            where (estrelas >= ? and estrelas <= ?) and
-            (diaria >= ? and diaria <= ?) and cidade = ? LIMIT ? OFFSET ?"""
             tupla = tuple([parametros[chave] for chave in parametros])
-            resultado = cursor.execute(consulta, tupla)
+            resultado = cursor.execute(consulta_com_cidade, tupla)
         else:
-            consulta = f"""SELECT * FROM hoteis
-                        where (estrelas >= ? and estrelas <= ?) and
-                        (diaria >= ? and diaria <= ?)
-                         LIMIT ? OFFSET ?"""
             tupla = tuple([parametros[chave] for chave in parametros])
-            resultado = cursor.execute(consulta, tupla)
+            resultado = cursor.execute(consulta_sem_cidade, tupla)
 
         hoteis = []
         for linha in resultado:
