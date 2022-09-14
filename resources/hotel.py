@@ -4,6 +4,7 @@ from flask_jwt_extended import jwt_required
 from flask_restful import Resource, reqparse, request
 
 from models.hotel import HotelModel
+from models.site import SiteModel
 
 from .filtros import *
 
@@ -49,7 +50,8 @@ class Hotel(Resource):
                             help="The field 'estrelas' cannot be left blank")
     argumentos.add_argument('diaria')
     argumentos.add_argument('cidade')
-    argumentos.add_argument('site_id', type=int, required=True, help='Every hotel needs to be linked with an site')
+    argumentos.add_argument('site_id', type=int, required=True,
+                            help='Every hotel needs to be linked with an site')
 
     def get(self, hotel_id):
         hotel = HotelModel.find_hotel(hotel_id)
@@ -66,7 +68,9 @@ class Hotel(Resource):
 
         dados = Hotel.argumentos.parse_args()
         hotel = HotelModel(hotel_id, **dados)
-        # novo_hotel = {'hotel_id': hotel_id, **dados}
+
+        if not SiteModel.find_by_id(dados.get('site_id')):
+            return {'message': 'The hotel must be associeated to a valid site id'}, 400
         try:
             hotel.save_hotel()
         except:
