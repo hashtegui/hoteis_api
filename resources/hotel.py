@@ -24,17 +24,6 @@ class Hoteis(Resource):
             tupla = tuple([parametros[chave] for chave in parametros])
             resultado = cursor.execute(consulta_com_cidade, tupla)
         else:
-<<<<<<< HEAD
-=======
-            consulta = f"""SELECT * FROM hoteis
-<<<<<<< HEAD
-                        where (estrelas > ? and estrelas <= ?) and
-=======
-                        where (estrelas > ? and estrelas < ?) and
->>>>>>> 17c4dcab8965af61402e01f0a1945464e5ae328d
-                        (diaria >= ? and diaria <= ?)
-                         LIMIT ? OFFSET ?"""
->>>>>>> e0720d2578f71405f358792a7cd60ae7437c7b4a
             tupla = tuple([parametros[chave] for chave in parametros])
             resultado = cursor.execute(consulta_sem_cidade, tupla)
 
