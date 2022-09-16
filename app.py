@@ -1,6 +1,7 @@
 from flask import Flask, jsonify
 from flask_jwt_extended import JWTManager
 from flask_restful import Api
+from sql_alchemy import banco
 
 from blacklist import BLACKLIST
 from resources.hotel import Hoteis, Hotel
@@ -14,6 +15,7 @@ app.config['SECRET_KEY'] = 'NaofalePraNInguem'
 app.config['JWT_BLACKLIST_ENABLE'] = True
 api = Api(app)
 jwt = JWTManager(app)
+banco.init_app(app)
 
 
 @app.before_first_request
@@ -40,8 +42,3 @@ api.add_resource(UserLogout, '/logout')
 api.add_resource(Site, '/sites/<string:url>')
 api.add_resource(Sites, '/sites')
 
-if __name__ == '__main__':
-    from sql_alchemy import banco
-
-    banco.init_app(app)
-    app.run(debug=True)
