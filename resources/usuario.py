@@ -1,3 +1,4 @@
+import traceback
 from flask_restful import Resource, reqparse
 from models.usuario import UserModel
 from flask_jwt_extended import create_access_token, jwt_required, get_jwt
@@ -8,6 +9,7 @@ atributos = reqparse.RequestParser()
 atributos.add_argument('login', type=str, required=True, help="The field 'login' cannot be left empty")
 atributos.add_argument('senha', type=str, required=True, help="The field 'senha' cannot be left empty")
 atributos.add_argument('ativado', type=bool)
+atributos.add_argument('email', type=str)
 
 
 class User(Resource):
@@ -29,13 +31,24 @@ class User(Resource):
 class UserRegister(Resource):
     def post(self):
         dados = atributos.parse_args()
+        if not dados.get('email') or dados.get('email') is None:
+            return {'message': 'The field email cannot be empty'}, 400 
 
         if UserModel.find_by_login(dados['login']):
-            return {'message': f"The {dados['login']} already exists"}
+            return {'message': f"The {dados['login']} already exists"}, 400
+        
+        if UserModel.find_by_email(dados['email']):
+            return {'message': f"The {dados['email']} already exists"}, 400
 
         user = UserModel(**dados)
         user.ativado = False
-        user.save_user()
+        try:
+            user.save_user()
+            user.send_confirmation_email()
+        except:
+            user.delete_user()
+            traceback.print_exc()
+            return {'message': 'An Internal Server Error ocurred'}, 500
         return {'message': "User created successfully"}, 201
 
 
