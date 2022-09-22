@@ -1,11 +1,14 @@
 from sql_alchemy import banco
 from flask import request, url_for
 from requests import post
+from dotenv import dotenv_values
 
-MAILGUN_API_KEY = "0ab4048519e4facf0a41635cc2c76498-78651cec-b22e4f62"
-MAILGUN_DOMAIN = 'sandbox72aad4cc05e64966935e420edf51019f.mailgun.org'
+config = dotenv_values(".env")
+
+MAILGUN_DOMAIN = config.get('MAILGUN_DOMAIN')
+MAILGUN_API_KEY = config.get('MAILGUN_API_KEY')
 FROM_TITLE = "no-reply"
-FROM_EMAIL= "no-reply@restapi.com"
+FROM_EMAIL = "no-reply@restapi.com"
 
 
 class UserModel(banco.Model):
@@ -30,22 +33,20 @@ class UserModel(banco.Model):
             'email': self.email,
             'ativado': self.ativado
         }
-        
+
     def send_confirmation_email(self):
         link = request.url_root[:-1] + url_for('userconfirm', user_id=self.user_id)
         print(link)
-        
-        teste= "teste"
-        
+
+        teste = "teste"
+
         return post(f'https://api.mailgun.net/v3/{MAILGUN_DOMAIN}/messages', auth=('api', MAILGUN_API_KEY),
                     data={'from': f'{FROM_TITLE} <{FROM_EMAIL}>',
-                          'to':self.email,
-                          'subject':'Confirmação de Cadastro',
-                          'text':f'Confirme seu cadastro {teste} clicando no link a seguik: {link}',
+                          'to': self.email,
+                          'subject': 'Confirmação de Cadastro',
+                          'text': f'Confirme seu cadastro {teste} clicando no link a seguik: {link}',
                           'html': f'<html><p>Confirme seu cadastro clicando no link a seguir: <a href="{link}"></a></p></html>'
                           },)
-        
-        
 
     @classmethod
     def find_user(cls, user_id):
@@ -60,7 +61,7 @@ class UserModel(banco.Model):
         if user:
             return user
         return None
-    
+
     @classmethod
     def find_by_email(cls, email):
         user = cls.query.filter_by(email=email).first()
